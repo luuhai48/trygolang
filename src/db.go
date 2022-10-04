@@ -23,9 +23,11 @@ func SetupDatabase() {
 }
 
 func CloseDatabase() {
-	log.Println("Disconnecting from database")
-	db, _ := DB.DB()
-	db.Close()
+	if DB != nil {
+		log.Println("Disconnecting from database")
+		db, _ := DB.DB()
+		db.Close()
+	}
 }
 
 func DropUnusedColumns(dsts ...interface{}) {

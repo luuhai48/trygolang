@@ -47,5 +47,7 @@ func NewServer() *gin.Engine {
 		app.Use(gin.Logger())
 	}
 
+	RegisterRoutes(app)
+
 	return app
 }

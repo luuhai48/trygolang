@@ -1,11 +1,14 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"runtime"
 	"time"
 
+	"github.com/getsentry/sentry-go"
+	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -32,6 +35,21 @@ func NewServer() *gin.Engine {
 
 	app := gin.New()
 
+	if os.Getenv("LOGGER") != "false" {
+		app.Use(gin.Logger())
+	}
+
+	err := sentry.Init(sentry.ClientOptions{
+		Dsn: MustGetEnv("SENTRY_DSN", ""),
+	})
+	if err != nil {
+		log.Println("Sentry initialization failed: " + err.Error())
+	} else {
+		app.Use(sentrygin.New(sentrygin.Options{
+			Repanic: true,
+		}))
+	}
+
 	app.Use(
 		gin.CustomRecovery(customRecoveryHandler),
 		cors.New(cors.Config{
@@ -42,10 +60,6 @@ func NewServer() *gin.Engine {
 			MaxAge:           12 * time.Hour,
 		}),
 	)
-
-	if os.Getenv("LOGGER") != "false" {
-		app.Use(gin.Logger())
-	}
 
 	RegisterRoutes(app)
 

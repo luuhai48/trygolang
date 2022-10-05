@@ -20,9 +20,8 @@ func After(ctx *c.Context) error {
 
 func NewCli() *c.App {
 	return &c.App{
-		Name:                 "Go-API",
+		Name:                 "Go-API-CLI",
 		Usage:                "Simple and Fast!",
-		HelpName:             "./build",
 		EnableBashCompletion: true,
 		Commands: []*c.Command{
 			{
@@ -34,6 +33,25 @@ func NewCli() *c.App {
 				},
 				Before: Before,
 				After:  After,
+			},
+			{
+				Name:  "migrate",
+				Usage: "Database migrations",
+				Subcommands: []*c.Command{
+					{
+						Name:      "make",
+						Usage:     "Create blank migration file",
+						ArgsUsage: "[file_name]",
+						Action: func(ctx *c.Context) error {
+							fileName := ctx.Args().First()
+							if fileName == "" {
+								return c.Exit("Migration name not specified", 1)
+							}
+							MakeMigration(fileName)
+							return nil
+						},
+					},
+				},
 			},
 		},
 	}

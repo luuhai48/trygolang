@@ -5,13 +5,15 @@ WORKDIR /app
 COPY go.mod go.sum /app/
 RUN go mod download
 COPY . .
-RUN go build ./src/*.go -o /build
+RUN go build -o build ./src/*.go
 
 
 FROM alpine:latest
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
-WORKDIR /app
-COPY --from=builder /build /app/build
+RUN mkdir /app
+COPY --from=builder /app/build /app/build
+COPY --from=builder /app/migrations /app/migrations
 
+WORKDIR /app
 EXPOSE 3333
 ENTRYPOINT [ "/app/build" ]

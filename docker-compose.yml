@@ -19,7 +19,6 @@ services:
   app:
     build: .
     image: go-api:latest
-    restart: unless-stopped
     ports:
       - "3333:3333"
     env_file:
@@ -28,3 +27,4 @@ services:
       - DB_CONNECTION=user:pass@tcp(mariadb:3306)/api?charset=utf8mb4&parseTime=True&loc=Local
     depends_on:
       - mariadb
+    command: run

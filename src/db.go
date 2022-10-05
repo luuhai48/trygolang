@@ -1,7 +1,13 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -30,23 +36,92 @@ func CloseDatabase() {
 	}
 }
 
-func DropUnusedColumns(dsts ...interface{}) {
-	for _, dst := range dsts {
-		stmt := &gorm.Statement{DB: DB}
-		stmt.Parse(dst)
-		fields := stmt.Schema.Fields
-		columns, _ := DB.Migrator().ColumnTypes(dst)
-		for i := range columns {
-			found := false
-			for j := range fields {
-				if columns[i].Name() == fields[j].DBName {
-					found = true
-					break
-				}
-			}
-			if !found {
-				DB.Debug().Migrator().DropColumn(dst, columns[i].Name())
-			}
-		}
+func MakeMigration(name string) {
+	seqDigits := 6
+	ext := ".sql"
+	dir := filepath.Clean("migrations")
+
+	var version string
+
+	files, err := filepath.Glob(filepath.Join(dir, "*"+ext))
+	if err != nil {
+		panic(err)
 	}
+	version, err = nextSeqVersion(files, seqDigits)
+	if err != nil {
+		panic(err)
+	}
+
+	versionGlob := filepath.Join(dir, version+"_*"+ext)
+	matches, err := filepath.Glob(versionGlob)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(matches) > 0 {
+		panic("Duplicate migration version: " + version)
+	}
+	if err = os.MkdirAll(dir, os.ModePerm); err != nil {
+		panic(err)
+	}
+
+	for _, direction := range []string{"up", "down"} {
+		basename := fmt.Sprintf("%s_%s.%s%s", version, name, direction, ext)
+		filename := filepath.Join(dir, basename)
+
+		if err = createFile(filename); err != nil {
+			panic(err)
+		}
+
+		absPath, _ := filepath.Abs(filename)
+		log.Println(absPath)
+	}
+}
+
+func nextSeqVersion(matches []string, seqDigits int) (string, error) {
+	if seqDigits <= 0 {
+		return "", errors.New("digits must be positive")
+	}
+
+	nextSeq := uint64(1)
+
+	if len(matches) > 0 {
+		filename := matches[len(matches)-1]
+		matchSeqStr := filepath.Base(filename)
+		idx := strings.Index(matchSeqStr, "_")
+
+		if idx < 1 { // Using 1 instead of 0 since there should be at least 1 digit
+			return "", fmt.Errorf("malformed migration filename: %s", filename)
+		}
+
+		var err error
+		matchSeqStr = matchSeqStr[0:idx]
+		nextSeq, err = strconv.ParseUint(matchSeqStr, 10, 64)
+
+		if err != nil {
+			return "", err
+		}
+
+		nextSeq++
+	}
+
+	version := fmt.Sprintf("%0[2]*[1]d", nextSeq, seqDigits)
+
+	if len(version) > seqDigits {
+		return "", fmt.Errorf("next sequence number %s too large. At most %d digits are allowed", version, seqDigits)
+	}
+
+	return version, nil
+}
+
+func createFile(filename string) error {
+	// create exclusive (fails if file already exists)
+	// os.Create() specifies 0666 as the FileMode, so we're doing the same
+	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
+
+	if err != nil {
+		return err
+	}
+
+	return f.Close()
 }

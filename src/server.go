@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -31,7 +32,16 @@ func NewServer() *gin.Engine {
 
 	app := gin.New()
 
-	app.Use(gin.CustomRecovery(customRecoveryHandler), cors.Default())
+	app.Use(
+		gin.CustomRecovery(customRecoveryHandler),
+		cors.New(cors.Config{
+			AllowOrigins:     []string{"*"},
+			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
+			AllowCredentials: true,
+			MaxAge:           12 * time.Hour,
+		}),
+	)
 
 	if os.Getenv("LOGGER") != "false" {
 		app.Use(gin.Logger())

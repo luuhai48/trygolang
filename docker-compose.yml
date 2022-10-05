@@ -15,10 +15,15 @@ services:
       MARIADB_ROOT_USER: user
       MARIADB_ROOT_PASSWORD: pass
       MARIADB_DATABASE: api
+    healthcheck:
+      test: mysqladmin ping -h localhost -u $$MARIADB_ROOT_USER --password=$$MARIADB_ROOT_PASSWORD
+      interval: 5s
+      retries: 5
 
   app:
     build: .
     image: go-api:latest
+    restart: on-failure
     ports:
       - "3333:3333"
     env_file:
@@ -26,5 +31,5 @@ services:
     environment:
       - DB_CONNECTION=user:pass@tcp(mariadb:3306)/api?charset=utf8mb4&parseTime=True&loc=Local
     depends_on:
-      - mariadb
-    command: run
+      mariadb:
+        condition: service_healthy

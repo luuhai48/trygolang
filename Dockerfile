@@ -13,7 +13,8 @@ RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
 RUN mkdir /app
 COPY --from=builder /app/build /app/build
 COPY --from=builder /app/migrations /app/migrations
+COPY --from=builder --chmod=755 /app/entrypoint.sh /app/entrypoint.sh
 
 WORKDIR /app
 EXPOSE 3333
-ENTRYPOINT [ "/app/build" ]
+ENTRYPOINT [ "/app/entrypoint.sh" ]

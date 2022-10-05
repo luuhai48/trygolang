@@ -35,7 +35,7 @@ func NewCli() *c.App {
 				After:  After,
 			},
 			{
-				Name:  "migrate",
+				Name:  "migration",
 				Usage: "Database migrations",
 				Subcommands: []*c.Command{
 					{
@@ -45,9 +45,17 @@ func NewCli() *c.App {
 						Action: func(ctx *c.Context) error {
 							fileName := ctx.Args().First()
 							if fileName == "" {
-								return c.Exit("Migration name not specified", 1)
+								return c.Exit("Migration file name not specified", 1)
 							}
 							MakeMigration(fileName)
+							return nil
+						},
+					},
+					{
+						Name:  "migrate",
+						Usage: "Run migrations",
+						Action: func(ctx *c.Context) error {
+							RunMigration()
 							return nil
 						},
 					},

@@ -9,7 +9,14 @@ import (
 	"strconv"
 	"strings"
 
-	"gorm.io/driver/mysql"
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+
+	gm "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -17,7 +24,7 @@ var DB *gorm.DB
 
 func SetupDatabase() {
 	uri := GetEnv("DB_CONNECTION")
-	db, err := gorm.Open(mysql.Open(uri), &gorm.Config{
+	db, err := gorm.Open(gm.Open(uri), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 
@@ -124,4 +131,30 @@ func createFile(filename string) error {
 	}
 
 	return f.Close()
+}
+
+func RunMigration() {
+	log.Println("Running migration...")
+
+	uri := GetEnv("DB_CONNECTION") + "&multiStatements=true"
+	db, err := sql.Open("mysql", uri)
+	if err != nil {
+		panic(err)
+	}
+
+	driver, err := mysql.WithInstance(db, &mysql.Config{})
+	if err != nil {
+		panic(err)
+	}
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		"mysql",
+		driver,
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	m.Up()
+	db.Close()
 }

@@ -1,0 +1,22 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Go API documentation",
+        "title": "Go API",
+        "contact": {
+            "name": "luuhai48",
+            "url": "https://luuhai48.github.io",
+            "email": "luuhai.hn48@gmail.com"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/v1",
+    "paths": {},
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

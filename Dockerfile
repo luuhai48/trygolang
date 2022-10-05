@@ -10,11 +10,8 @@ RUN go build -o build ./src/*.go
 
 FROM alpine:latest
 RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
-RUN mkdir /app
-COPY --from=builder /app/build /app/build
-COPY --from=builder /app/migrations /app/migrations
-COPY --from=builder --chmod=755 /app/entrypoint.sh /app/entrypoint.sh
-
+COPY --from=builder /app /app
+RUN chmod -R 755 /app/entrypoint.sh
 WORKDIR /app
 EXPOSE 3333
 ENTRYPOINT [ "/app/entrypoint.sh" ]

@@ -1,0 +1,16 @@
+basePath: /v1
+info:
+  contact:
+    email: luuhai.hn48@gmail.com
+    name: luuhai48
+    url: https://luuhai48.github.io
+  description: Go API documentation
+  title: Go API
+  version: "1.0"
+paths: {}
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

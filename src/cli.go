@@ -61,6 +61,13 @@ func NewCli() *c.App {
 					},
 				},
 			},
+			{
+				Name:    "swag",
+				Aliases: []string{"s"},
+				Usage:   "Create docs.go",
+				Action:  SwaggerInitAction,
+				Flags:   SwaggerInitFlags,
+			},
 		},
 	}
 }

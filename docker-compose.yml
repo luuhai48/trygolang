@@ -2,6 +2,7 @@ version: "3.8"
 
 volumes:
   go_api_db:
+  go_api_redis:
 
 services:
   mariadb:
@@ -17,7 +18,22 @@ services:
       MARIADB_DATABASE: api
     healthcheck:
       test: mysqladmin ping -h localhost -u $$MARIADB_ROOT_USER --password=$$MARIADB_ROOT_PASSWORD
-      interval: 5s
+      interval: 3s
+      retries: 5
+
+  redis:
+    image: bitnami/redis:7.0.5
+    restart: always
+    ports:
+      - "6375:6379"
+    volumes:
+      - go_api_redis:/bitnami/redis/data
+    environment:
+      REDIS_PASSWORD: pass
+      REDIS_DISABLE_COMMANDS: FLUSHALL,CONFIG
+    healthcheck:
+      test: redis-cli --no-auth-warning --pass pass ping | grep PONG
+      interval: 3s
       retries: 5
 
   app:
@@ -29,7 +45,10 @@ services:
     env_file:
       - .env
     environment:
-      - DB_CONNECTION=user:pass@tcp(mariadb:3306)/api?charset=utf8mb4&parseTime=True&loc=Local
+      DB_CONNECTION: user:pass@tcp(mariadb:3306)/api?charset=utf8mb4&parseTime=True&loc=Local
+      REDIS_CONNECTION: redis://:pass@redis:6379/0
     depends_on:
       mariadb:
+        condition: service_healthy
+      redis:
         condition: service_healthy

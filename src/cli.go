@@ -6,11 +6,13 @@ import (
 
 func Before(ctx *c.Context) error {
 	SetupDatabase()
+	SetupRedis()
 	return nil
 }
 
 func Shutdown() {
 	CloseDatabase()
+	CloseRedis()
 }
 
 func After(ctx *c.Context) error {

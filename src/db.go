@@ -37,7 +37,7 @@ func SetupDatabase() {
 
 func CloseDatabase() {
 	if DB != nil {
-		log.Println("Disconnecting from database")
+		log.Println("Closing from database")
 		db, _ := DB.DB()
 		db.Close()
 	}

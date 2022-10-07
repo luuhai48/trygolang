@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-redis/redis/v9"
+	"github.com/go-redis/redis/v8"
 )
 
 var REDIS *redis.Client
@@ -27,12 +27,10 @@ func parseRedisOptionsFromUri(uri string) *redis.Options {
 		panic("Invalid Redis DB number")
 	}
 
-	username := u.User.Username()
 	password, _ := u.User.Password()
 
 	return &redis.Options{
 		Addr:     u.Host,
-		Username: username,
 		Password: password,
 		DB:       dbNum,
 	}

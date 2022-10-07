@@ -35,7 +35,7 @@ func main() {
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-c
-		log.Println("\r- Ctrl+C pressed in Terminal")
+		log.Println("\r- Interupt signal received")
 
 		Shutdown()
 
@@ -45,5 +45,5 @@ func main() {
 	if err := NewCli().Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Exiting")
+	log.Println("Exit")
 }

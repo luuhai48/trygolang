@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"runtime"
 	"time"
 
@@ -11,6 +13,7 @@ import (
 	sentrygin "github.com/getsentry/sentry-go/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/sys/unix"
 )
 
 func customRecoveryHandler(c *gin.Context, err any) {
@@ -30,7 +33,7 @@ func customRecoveryHandler(c *gin.Context, err any) {
 	})
 }
 
-func NewServer() *gin.Engine {
+func StartWebServer() {
 	gin.SetMode(os.Getenv("GIN_MODE"))
 
 	app := gin.New()
@@ -63,5 +66,26 @@ func NewServer() *gin.Engine {
 
 	RegisterRoutes(app)
 
-	return app
+	srv := &http.Server{
+		Addr:    MustGetEnv("HOST", "0.0.0.0") + ":" + MustGetEnv("PORT", "3333"),
+		Handler: app,
+	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			panic(err)
+		}
+	}()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, unix.SIGTERM, unix.SIGINT, unix.SIGTSTP)
+
+	<-sigs
+
+	log.Println("Closing web server")
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown: ", err)
+	}
 }

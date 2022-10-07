@@ -13,6 +13,7 @@ func Before(ctx *c.Context) error {
 func Shutdown() {
 	CloseDatabase()
 	CloseRedis()
+	CloseTaskQueueServer()
 }
 
 func After(ctx *c.Context) error {
@@ -31,7 +32,8 @@ func NewCli() *c.App {
 				Aliases: []string{"r", "run"},
 				Usage:   "Start web server",
 				Action: func(ctx *c.Context) error {
-					return NewServer().Run(MustGetEnv("HOST", "127.0.0.1") + ":" + MustGetEnv("PORT", "3333"))
+					StartWebServer()
+					return nil
 				},
 				Before: Before,
 				After:  After,
@@ -69,6 +71,23 @@ func NewCli() *c.App {
 				Usage:   "Create docs.go",
 				Action:  SwaggerInitAction,
 				Flags:   SwaggerInitFlags,
+			},
+			{
+				Name:  "runqueue",
+				Usage: "Start task queue",
+				Action: func(ctx *c.Context) error {
+					if err := QUEUE_SERVER.Run(QUEUE_HANDLER); err != nil {
+						panic(err)
+					}
+					return nil
+				},
+				Before: func(ctx *c.Context) error {
+					SetupDatabase()
+					SetupRedis()
+					SetupTaskQueueWorkerServer()
+					return nil
+				},
+				After: After,
 			},
 		},
 	}

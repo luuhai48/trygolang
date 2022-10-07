@@ -23,3 +23,9 @@ go run ./src runserver
 # or
 go run ./src run
 ```
+
+### Start task queue server
+
+```bash
+go run ./src runqueue
+```

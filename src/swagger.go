@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/swaggo/swag"
+	"github.com/swaggo/swag/format"
 	"github.com/swaggo/swag/gen"
 	c "github.com/urfave/cli/v2"
 )
@@ -146,7 +147,15 @@ func SwaggerInitAction(ctx *c.Context) error {
 		logger = log.New(io.Discard, "", log.LstdFlags)
 	}
 
-	return gen.New().Build(&gen.Config{
+	// Format comments
+	format.New().Build(&format.Config{
+		SearchDir: ctx.String(searchDirFlag),
+		Excludes:  ctx.String(excludeFlag),
+		MainFile:  ctx.String(generalInfoFlag),
+	})
+
+	// Generate docs
+	gen.New().Build(&gen.Config{
 		SearchDir:           ctx.String(searchDirFlag),
 		Excludes:            ctx.String(excludeFlag),
 		MainAPIFile:         ctx.String(generalInfoFlag),
@@ -166,4 +175,6 @@ func SwaggerInitAction(ctx *c.Context) error {
 		ParseGoList:         ctx.Bool(parseGoListFlag),
 		Debugger:            logger,
 	})
+
+	return nil
 }

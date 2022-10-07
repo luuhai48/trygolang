@@ -16,19 +16,19 @@ func init() {
 	}
 }
 
-// @title 			Go API
-// @version 		1.0
+// @title       Go API
+// @version     1.0
 // @description Go API documentation
 
-// @contact.name   luuhai48
-// @contact.url    https://luuhai48.github.io
-// @contact.email  luuhai.hn48@gmail.com
+// @contact.name  luuhai48
+// @contact.url   https://luuhai48.github.io
+// @contact.email luuhai.hn48@gmail.com
 
-// @BasePath 	/v1
+// @BasePath /v1
 
-// @securityDefinitions.apikey  ApiKeyAuth
-// @in                          header
-// @name                        Authorization
+// @securityDefinitions.apikey ApiKeyAuth
+// @in                         header
+// @name                       Authorization
 
 func main() {
 	c := make(chan os.Signal, 1)
